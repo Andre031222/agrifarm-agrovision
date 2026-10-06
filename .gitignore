@@ -1,0 +1,12 @@
+# Lista blanca: solo se publica la aplicación.
+/*
+!/.gitignore
+!/LICENSE
+!/README.md
+!/software/
+software/.venv/
+software/*.egg-info/
+software/*.db
+software/CREDENCIALES_LOCALES.txt
+__pycache__/
+.pytest_cache/
