@@ -178,7 +178,8 @@ def test_cli_flujo_completo(tmp_path, capsys):
 
 def test_usuario_crear_y_verificar(con):
     uid = auth.crear_usuario(con, "Flor.Y", "clave-segura-1", "Flor")
-    assert auth.verificar(con, "flor.y", "clave-segura-1") == {"id": uid, "usuario": "flor.y", "nombre": "Flor"}
+    assert auth.verificar(con, "flor.y", "clave-segura-1") == {"id": uid, "usuario": "flor.y", "nombre": "Flor",
+                                                               "rol": "productor"}
     assert auth.verificar(con, "flor.y", "otra-clave-xx") is None
     assert auth.verificar(con, "nadie", "clave-segura-1") is None
     fila = con.execute("SELECT hash FROM usuarios").fetchone()
@@ -231,3 +232,67 @@ def test_cli_usuario(tmp_path, monkeypatch, capsys):
     assert main(["--db", base, "usuario", "crear", "--usuario", "maribel", "--nombre", "Maribel"]) == 0
     assert "creado" in capsys.readouterr().out
     assert main(["--db", base, "usuario", "crear", "--usuario", "maribel", "--nombre", "X"]) == 1
+
+
+def test_solo_el_duenio_cierra_su_oferta(con):
+    a = auth.crear_usuario(con, "duenio", "clave-de-prueba", "A")
+    b = auth.crear_usuario(con, "otro", "clave-de-prueba", "B")
+    oid = mercado.publicar_oferta(con, "A", "papa", 100, 1.5, usuario_id=a)
+    with pytest.raises(PermissionError):
+        mercado.cerrar_oferta(con, oid, usuario_id=b)
+    mercado.cerrar_oferta(con, oid, usuario_id=a)
+    assert mercado.listar_ofertas(con) == []
+
+
+# --- roles y CLI completo ---------------------------------------------------
+
+def test_roles(con):
+    auth.crear_usuario(con, "admin1", "clave-de-prueba", "Admin", rol="admin")
+    auth.crear_usuario(con, "prod1", "clave-de-prueba", "Prod")
+    assert auth.es_admin(auth.verificar(con, "admin1", "clave-de-prueba"))
+    assert not auth.es_admin(auth.verificar(con, "prod1", "clave-de-prueba"))
+    auth.cambiar_rol(con, "prod1", "admin")
+    assert auth.es_admin(auth.verificar(con, "prod1", "clave-de-prueba"))
+    with pytest.raises(ValueError):
+        auth.cambiar_rol(con, "prod1", "superusuario")
+    with pytest.raises(ValueError):
+        auth.cambiar_rol(con, "nadie", "admin")
+    with pytest.raises(ValueError):
+        auth.crear_usuario(con, "x1", "clave-de-prueba", "X", rol="root")
+
+
+def test_cli_todos_los_comandos(tmp_path, monkeypatch, capsys):
+    from agrovision.cli import main
+    base = str(tmp_path / "c.db")
+    hoy = date.today()
+    dias = [((hoy - timedelta(days=k)).isoformat(), 12, 8) for k in (1, 0)]
+    falso = {"horario": horario_dias(dias),
+             "diario": [{"fecha": f, "tmax": 15, "tmin": -3, "precip": 0} for f, _, _ in dias]}
+    monkeypatch.setattr(clima, "obtener_clima", lambda lat, lon: falso)
+    monkeypatch.setenv("AGROVISION_PASSWORD", "clave-de-prueba")
+    csv = tmp_path / "p.csv"
+    csv.write_text("fecha,producto,mercado,precio_kg\n2025-01-15,papa,A,1.2\n2025-02-15,papa,A,1.5\n")
+    pasos = [
+        ["parcela", "agregar", "--nombre", "L1", "--cultivo", "papa", "--lat", "-15.8", "--lon", "-70"],
+        ["parcela", "listar"],
+        ["clima", "--parcela", "1"],
+        ["plaga", "registrar", "--parcela", "1", "--plaga", "rancha", "--evaluadas", "10", "--afectadas", "3"],
+        ["plaga", "alertas"],
+        ["precios", "importar", str(csv), "--fuente", "prueba"],
+        ["precios", "resumen", "--producto", "papa"],
+        ["oferta", "publicar", "--productor", "Ana", "--producto", "papa", "--cantidad", "10", "--precio", "2"],
+        ["oferta", "listar"],
+        ["oferta", "cerrar", "--id", "1"],
+        ["usuario", "crear", "--usuario", "ana", "--nombre", "Ana", "--admin"],
+        ["usuario", "rol", "--usuario", "ana", "--rol", "productor"],
+        ["usuario", "listar"],
+    ]
+    for args in pasos:
+        assert main(["--db", base] + args) == 0, args
+    salida = capsys.readouterr().out
+    assert "Periodos críticos de rancha (hutton): " + date.today().isoformat() in salida
+    assert "nivel=alto" in salida  # mínima de -3 °C bajo el umbral de helada de la papa
+    assert "2 precios importados" in salida and "rol productor" in salida
+    assert main(["--db", base, "precios", "resumen", "--producto", "quinua"]) == 0
+    assert "(sin datos" in capsys.readouterr().out
+    assert main(["--db", base, "oferta", "cerrar", "--id", "99"]) == 1

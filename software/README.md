@@ -28,7 +28,7 @@ Abre http://localhost:8501. Para crear cuentas, usa la pestaña «Crear cuenta»
 .venv/bin/agrovision --db agrovision.db usuario crear --usuario flor --nombre "Flor Yanarico"
 ```
 
-Las contraseñas se guardan con PBKDF2-SHA256 y sal aleatoria; nunca en texto plano. Cada usuario ve solo sus parcelas, y las ofertas de venta son públicas. El usuario de desarrollo local está en `CREDENCIALES_LOCALES.txt`, que está excluido de git.
+Las contraseñas se guardan con PBKDF2-SHA256 y sal aleatoria; nunca en texto plano. Hay dos roles: `productor` y `admin`; solo un administrador puede importar precios (`agrovision usuario rol --usuario X --rol admin`). La interfaz está en español e inglés (`app/i18n.py`); para agregar quechua o aymara se añade un diccionario revisado por hablantes nativos. Cada usuario ve solo sus parcelas, y las ofertas de venta son públicas. El usuario de desarrollo local está en `CREDENCIALES_LOCALES.txt`, que está excluido de git.
 
 Línea de comandos:
 
@@ -51,7 +51,7 @@ La base SQLite se guarda en `agrovision.db`, o en la ruta indicada por `AGROVISI
 .venv/bin/python -m pytest
 ```
 
-Son 24 pruebas sin conexión a internet.
+Son 27 pruebas sin conexión a internet (95 % de cobertura del núcleo).
 
 ## Estructura
 
@@ -62,7 +62,8 @@ Son 24 pruebas sin conexión a internet.
 | `agrovision/plagas.py` | Criterios Hutton/Smith, incidencia, alertas y tendencia |
 | `agrovision/mercado.py` | Precios (CSV), tendencia, estacionalidad, margen, ofertas |
 | `agrovision/db.py` | Esquema SQLite y migración |
-| `agrovision/auth.py` | Usuarios y contraseñas |
+| `agrovision/auth.py` | Usuarios, contraseñas y roles |
+| `app/i18n.py` | Traducciones de la interfaz (es/en) |
 | `agrovision/cli.py` | Comandos |
 | `app/` | Panel Streamlit y estilos |
 

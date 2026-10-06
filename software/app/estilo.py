@@ -1,6 +1,8 @@
 """Estilo visual heredado de AgroVision 360: degradados verde-turquesa, tarjetas redondeadas."""
 from html import escape
 
+from i18n import t
+
 CSS = """
 <style>
 @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap");
@@ -125,9 +127,9 @@ def marca(nombre, subtitulo):
 
 
 def hero(titulo, subtitulo, hora, fecha):
-    return (f'<div class="av-hero"><div><div class="estado">● SISTEMA ACTIVO · EN LÍNEA</div>'
+    return (f'<div class="av-hero"><div><div class="estado">● {t("SISTEMA ACTIVO · EN LÍNEA")}</div>'
             f'<h1>{escape(titulo)}</h1><p>{escape(subtitulo)}</p></div>'
-            f'<div class="av-reloj"><small>Hora actual</small><b>{hora}</b><small>{escape(fecha)}</small></div></div>')
+            f'<div class="av-reloj"><small>{t("Hora actual")}</small><b>{hora}</b><small>{escape(fecha)}</small></div></div>')
 
 
 def tarjeta(titulo, valor, unidad="", color="verde", icono_nombre="hoja", nota=None):
@@ -150,17 +152,17 @@ def tarjeta_clima(lugar, temp, humedad, precip, tmin):
     return (f'<div class="av-clima"><div class="lugar">{escape(lugar)}</div>'
             f'<span class="av-sol">{icono("sol", 46)}</span>'
             f'<div class="temp">{temp}°C</div><div class="fila">'
-            f'<div><b>{humedad}%</b>Humedad</div><div><b>{precip} mm</b>Lluvia hoy</div>'
-            f'<div><b>{tmin}°C</b>Mínima hoy</div></div></div>')
+            f'<div><b>{humedad}%</b>{t("Humedad")}</div><div><b>{precip} mm</b>{t("Lluvia hoy")}</div>'
+            f'<div><b>{tmin}°C</b>{t("Mínima hoy")}</div></div></div>')
 
 
 def tarjeta_oferta(oferta):
     lugar = f" · {escape(oferta['lugar'])}" if oferta.get("lugar") else ""
-    contacto = escape(oferta["contacto"]) if oferta.get("contacto") else "Sin contacto"
+    contacto = escape(oferta["contacto"]) if oferta.get("contacto") else t("Sin contacto")
     return (f'<div class="av-oferta"><b>{escape(oferta["producto"])}</b>'
-            f'<div class="precio">S/ {oferta["precio_kg"]:.2f} <small style="display:inline">por kg</small></div>'
-            f'<small>{oferta["cantidad_kg"]:.0f} kg disponibles · {escape(oferta["productor"])}{lugar}</small>'
-            f'<small>{contacto} · publicado {escape(oferta["fecha"])}</small></div>')
+            f'<div class="precio">S/ {oferta["precio_kg"]:.2f} <small style="display:inline">{t("por kg")}</small></div>'
+            f'<small>{oferta["cantidad_kg"]:.0f} {t("kg disponibles")} · {escape(oferta["productor"])}{lugar}</small>'
+            f'<small>{contacto} · {t("publicado")} {escape(oferta["fecha"])}</small></div>')
 
 
 CSS_LOGIN = """
@@ -193,18 +195,19 @@ section[data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] { di
 
 
 def panel_login():
-    tiles = [("tendencia", "linear-gradient(135deg,#f59e0b,#f97316)", "Riesgo climático"),
-             ("plaga", "linear-gradient(135deg,#a855f7,#ec4899)", "Alertas de plagas"),
-             ("tienda", "linear-gradient(135deg,#3b82f6,#06b6d4)", "Precios de mercado"),
-             ("hoja", "linear-gradient(135deg,#22c55e,#10b981)", "Venta directa")]
+    tiles = [("tendencia", "linear-gradient(135deg,#f59e0b,#f97316)", t("Riesgo climático")),
+             ("plaga", "linear-gradient(135deg,#a855f7,#ec4899)", t("Alertas de plagas")),
+             ("tienda", "linear-gradient(135deg,#3b82f6,#06b6d4)", t("Precios de mercado")),
+             ("hoja", "linear-gradient(135deg,#22c55e,#10b981)", t("Venta directa"))]
     grid = "".join(f'<div><span style="background:{fondo}">{icono(ic)}</span>{texto}</div>'
                    for ic, fondo, texto in tiles)
     return (f'<div class="av-login-panel"><div class="av-login-logo">{icono("hoja", 48)}</div>'
-            f'<h2>Agricultura Inteligente</h2>'
-            f'<p>Monitorea el clima, las plagas y el mercado de tu parcela en el altiplano</p>'
+            f'<h2>{t("Agricultura Inteligente")}</h2>'
+            f'<p>{t("Monitorea el clima, las plagas y el mercado de tu parcela en el altiplano")}</p>'
             f'<div class="av-login-grid">{grid}</div>'
-            f'<div class="av-login-cifras"><div><b>4</b><small>Cultivos</small></div>'
-            f'<div><b>14</b><small>Días de clima</small></div><div><b>Gratis</b><small>Código abierto</small></div></div></div>')
+            f'<div class="av-login-cifras"><div><b>4</b><small>{t("Cultivos")}</small></div>'
+            f'<div><b>14</b><small>{t("Días de clima")}</small></div>'
+            f'<div><b>{t("Gratis")}</b><small>{t("Código abierto")}</small></div></div></div>')
 
 
 CSS_LANDING = """
@@ -257,52 +260,52 @@ EQUIPO = ["Richar Andre Vilca Solorzano", "Flor Melany Yanarico Huanca", "Yefers
 
 
 def landing_hero():
-    return ('<div class="lp-hero"><span class="lp-chip">● PLATAFORMA ABIERTA · ALTIPLANO DE PUNO</span>'
-            '<h1>Clima, plagas y mercado en una sola plataforma</h1>'
-            '<p>Alertas de helada y de rancha, registro de plagas en campo y precios para decidir cuándo vender. '
-            'Gratis y de código abierto.</p>'
-            '<div class="lp-cifras"><div><b>14</b><small>días de clima</small></div>'
-            '<div><b>4</b><small>cultivos andinos</small></div><div><b>2</b><small>criterios de rancha</small></div>'
-            '<div><b>Gratis</b><small>y abierto</small></div></div></div>')
+    return (f'<div class="lp-hero"><span class="lp-chip">● {t("PLATAFORMA ABIERTA · ALTIPLANO DE PUNO")}</span>'
+            f'<h1>{t("Clima, plagas y mercado en una sola plataforma")}</h1>'
+            f'<p>{t("Alertas de helada y de rancha, registro de plagas en campo y precios para decidir cuándo vender. Gratis y de código abierto.")}</p>'
+            f'<div class="lp-cifras"><div><b>14</b><small>{t("días de clima")}</small></div>'
+            f'<div><b>4</b><small>{t("cultivos andinos")}</small></div><div><b>2</b><small>{t("criterios de rancha")}</small></div>'
+            f'<div><b>{t("Gratis")}</b><small>{t("y abierto")}</small></div></div></div>')
 
 
 def landing_funciones():
-    items = [("nube", "linear-gradient(135deg,#3b82f6,#06b6d4)", "Riesgo climático",
-              "Heladas por cultivo, rachas secas y grados-día con datos abiertos de Open-Meteo."),
-             ("plaga", "linear-gradient(135deg,#f97316,#ef4444)", "Alertas de plagas",
-              "Periodos críticos de rancha y evaluaciones de campo con umbral de acción."),
-             ("tendencia", "linear-gradient(135deg,#a855f7,#ec4899)", "Precios de mercado",
-              "Tendencia, estacionalidad, mejor mes de venta y precio de equilibrio."),
-             ("tienda", "linear-gradient(135deg,#22c55e,#059669)", "Venta directa",
-              "Publica tu cosecha y conecta con compradores sin intermediarios.")]
-    tarjetas = "".join(f'<div class="lp-card"><span style="background:{f}">{icono(i, 26)}</span>'
-                       f'<b>{t}</b><p>{d}</p></div>' for i, f, t, d in items)
-    return ('<div class="lp-titulo"><small>SERVICIOS</small><h2>Todo lo que necesitas para tu parcela</h2></div>'
+    items = [("nube", "linear-gradient(135deg,#3b82f6,#06b6d4)", t("Riesgo climático"),
+              t("Heladas por cultivo, rachas secas y grados-día con datos abiertos de Open-Meteo.")),
+             ("plaga", "linear-gradient(135deg,#f97316,#ef4444)", t("Alertas de plagas"),
+              t("Periodos críticos de rancha y evaluaciones de campo con umbral de acción.")),
+             ("tendencia", "linear-gradient(135deg,#a855f7,#ec4899)", t("Precios de mercado"),
+              t("Tendencia, estacionalidad, mejor mes de venta y precio de equilibrio.")),
+             ("tienda", "linear-gradient(135deg,#22c55e,#059669)", t("Venta directa"),
+              t("Publica tu cosecha y conecta con compradores sin intermediarios."))]
+    tarjetas = "".join(f'<div class="lp-card"><span style="background:{fondo}">{icono(ic, 26)}</span>'
+                       f'<b>{titulo}</b><p>{texto}</p></div>' for ic, fondo, titulo, texto in items)
+    return (f'<div class="lp-titulo"><small>{t("SERVICIOS")}</small><h2>{t("Todo lo que necesitas para tu parcela")}</h2></div>'
             f'<div class="lp-grid">{tarjetas}</div>')
 
 
 def landing_pasos():
-    pasos = [("1", "Crea tu cuenta", "Regístrate gratis con tu usuario y contraseña."),
-             ("2", "Registra tus parcelas", "Indica el cultivo y la ubicación de cada parcela."),
-             ("3", "Recibe alertas", "Revisa el clima, las plagas y los precios cada día.")]
-    tarjetas = "".join(f'<div class="lp-paso"><i>{n}</i><b>{t}</b><p>{d}</p></div>' for n, t, d in pasos)
-    return ('<div class="lp-titulo"><small>CÓMO FUNCIONA</small><h2>Empieza en tres pasos</h2></div>'
+    pasos = [("1", t("Crea tu cuenta"), t("Regístrate gratis con tu usuario y contraseña.")),
+             ("2", t("Registra tus parcelas"), t("Indica el cultivo y la ubicación de cada parcela.")),
+             ("3", t("Recibe alertas"), t("Revisa el clima, las plagas y los precios cada día."))]
+    tarjetas = "".join(f'<div class="lp-paso"><i>{n}</i><b>{titulo}</b><p>{texto}</p></div>' for n, titulo, texto in pasos)
+    return (f'<div class="lp-titulo"><small>{t("CÓMO FUNCIONA")}</small><h2>{t("Empieza en tres pasos")}</h2></div>'
             f'<div class="lp-pasos">{tarjetas}</div>')
 
 
 def landing_equipo():
     nombres = "".join(f"<span>{escape(n)}</span>" for n in EQUIPO)
-    return ('<div class="lp-titulo"><small>ACERCA DE</small><h2>Nacido en las aulas de la UNAP</h2></div>'
-            '<div class="lp-equipo"><p>El proyecto empezó en 2025 en los cursos de Ingeniería de Software y '
-            'Taller de Desarrollo de Software de la Universidad Nacional del Altiplano, como Green Modern '
-            'Agrifarm y luego AgroVision 360. Esta versión la desarrolla el equipo original:</p>'
-            f'<div class="lp-nombres">{nombres}</div></div>')
+    texto = t("El proyecto empezó en 2025 en los cursos de Ingeniería de Software y Taller de Desarrollo de Software "
+              "de la Universidad Nacional del Altiplano, como Green Modern Agrifarm y luego AgroVision 360. "
+              "Esta versión la desarrolla el equipo original:")
+    return (f'<div class="lp-titulo"><small>{t("ACERCA DE")}</small><h2>{t("Nacido en las aulas de la UNAP")}</h2></div>'
+            f'<div class="lp-equipo"><p>{texto}</p><div class="lp-nombres">{nombres}</div></div>')
 
 
 def landing_pie():
-    return ('<div class="lp-pie"><div><b>AgriFarm AgroVision</b><br>Escuela Profesional de Ingeniería Estadística '
-            'e Informática · UNAP, Puno</div><div><b>Contacto</b><br>andrevilcasolorzano@gmail.com</div>'
-            '<div><b>Licencia</b><br>MIT · código abierto</div></div>')
+    return (f'<div class="lp-pie"><div><b>AgriFarm AgroVision</b><br>'
+            f'{t("Escuela Profesional de Ingeniería Estadística e Informática · UNAP, Puno")}</div>'
+            f'<div><b>{t("Contacto")}</b><br>andrevilcasolorzano@gmail.com</div>'
+            f'<div><b>{t("Licencia")}</b><br>{t("MIT · código abierto")}</div></div>')
 
 
 MENU_CSS_BASE = """
@@ -346,7 +349,7 @@ def css_menu(menu, activa):
     for nombre, _, color, fondo in menu:
         selector = f'section[data-testid="stSidebar"] .st-key-nav_{nombre} button'
         if nombre == activa:
-            reglas.append(f"{selector} {{ background: var(--verde) !important; color: #fff !important; "
+            reglas.append(f"{selector}, {selector}:hover {{ background: var(--verde) !important; color: #fff !important; "
                           f"box-shadow: 0 10px 22px -10px rgba(5,150,105,.75) !important; }}")
             reglas.append(f"{selector} p::after {{ content: '→'; position: absolute; right: 1rem; }}")
             reglas.append(f"{selector} [data-testid=\"stIconMaterial\"] {{ background: rgba(255,255,255,.22); color: #fff; }}")
@@ -356,16 +359,15 @@ def css_menu(menu, activa):
     return MENU_CSS_BASE + "<style>" + "\n".join(reglas) + "</style>"
 
 
-def cabecera(seccion, nombre, ahora):
+def cabecera(seccion, nombre, ahora, rol, meses, idioma):
     iniciales = "".join(p[0] for p in nombre.split()[:2]).upper()
-    meses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "set", "oct", "nov", "dic"]
-    return (f'<div class="av-cabecera"><div class="av-ruta">Panel / <b>{escape(seccion)}</b></div>'
-            f'<div class="av-chips"><span class="av-chip">🌐 ES</span>'
+    return (f'<div class="av-cabecera"><div class="av-ruta">{t("Panel")} / <b>{escape(seccion)}</b></div>'
+            f'<div class="av-chips"><span class="av-chip">🌐 {escape(idioma)}</span>'
             f'<span class="av-chip">{ahora.day} {meses[ahora.month - 1]} · {ahora.strftime("%H:%M")}</span>'
             f'<div class="av-usuario"><span class="av-avatar">{escape(iniciales)}</span>'
-            f'<div><b>{escape(nombre)}</b><small>productor</small></div></div></div></div>')
+            f'<div><b>{escape(nombre)}</b><small>{escape(rol)}</small></div></div></div></div>')
 
 
 def panel_alertas(contenido_html):
-    return (f'<div class="av-panel"><div class="av-titulo-alertas"><h3>Alertas recientes</h3>'
+    return (f'<div class="av-panel"><div class="av-titulo-alertas"><h3>{t("Alertas recientes")}</h3>'
             f'{icono("campana", 24)}</div><div style="margin-top:.9rem">{contenido_html}</div></div>')

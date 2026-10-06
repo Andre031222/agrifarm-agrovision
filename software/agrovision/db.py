@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     nombre  TEXT NOT NULL,
     sal     TEXT NOT NULL,
     hash    TEXT NOT NULL,
+    rol     TEXT NOT NULL DEFAULT 'productor' CHECK (rol IN ('productor', 'admin')),
     creado  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE TABLE IF NOT EXISTS parcelas (
@@ -49,7 +50,8 @@ CREATE TABLE IF NOT EXISTS ofertas (
     precio_kg   REAL NOT NULL CHECK (precio_kg >= 0),
     contacto    TEXT,
     lugar       TEXT,
-    activa      INTEGER NOT NULL DEFAULT 1
+    activa      INTEGER NOT NULL DEFAULT 1,
+    usuario_id  INTEGER REFERENCES usuarios(id) ON DELETE CASCADE
 );
 """
 
@@ -67,10 +69,15 @@ def conectar(ruta=None):
 
 def _migrar(con):
     """Agrega columnas nuevas a bases creadas con versiones anteriores."""
-    columnas = {f["name"] for f in con.execute("PRAGMA table_info(parcelas)")}
-    if "usuario_id" not in columnas:
-        con.execute("ALTER TABLE parcelas ADD COLUMN usuario_id INTEGER REFERENCES usuarios(id)")
+    columnas_usuarios = {f["name"] for f in con.execute("PRAGMA table_info(usuarios)")}
+    if "rol" not in columnas_usuarios:
+        con.execute("ALTER TABLE usuarios ADD COLUMN rol TEXT NOT NULL DEFAULT 'productor'")
         con.commit()
+    for tabla in ("parcelas", "ofertas"):
+        columnas = {f["name"] for f in con.execute(f"PRAGMA table_info({tabla})")}
+        if "usuario_id" not in columnas:
+            con.execute(f"ALTER TABLE {tabla} ADD COLUMN usuario_id INTEGER REFERENCES usuarios(id)")
+            con.commit()
 
 
 def agregar_parcela(con, nombre, cultivo, latitud, longitud, area_ha=None, fecha_siembra=None, usuario_id=None):

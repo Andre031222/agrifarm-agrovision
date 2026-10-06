@@ -125,12 +125,13 @@ def margen(rendimiento_kg, precio_kg, costos):
     }
 
 
-def publicar_oferta(con, productor, producto, cantidad_kg, precio_kg, contacto=None, lugar=None, fecha=None):
+def publicar_oferta(con, productor, producto, cantidad_kg, precio_kg, contacto=None, lugar=None, fecha=None,
+                    usuario_id=None):
     cur = con.execute(
-        "INSERT INTO ofertas (fecha, productor, producto, cantidad_kg, precio_kg, contacto, lugar) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO ofertas (fecha, productor, producto, cantidad_kg, precio_kg, contacto, lugar, usuario_id) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         (fecha or date.today().isoformat(), productor, producto.strip().lower(),
-         cantidad_kg, precio_kg, contacto, lugar),
+         cantidad_kg, precio_kg, contacto, lugar, usuario_id),
     )
     con.commit()
     return cur.lastrowid
@@ -146,8 +147,12 @@ def listar_ofertas(con, producto=None, solo_activas=True):
     return [dict(f) for f in con.execute(sql + " ORDER BY fecha DESC, id DESC", args)]
 
 
-def cerrar_oferta(con, oferta_id):
-    cur = con.execute("UPDATE ofertas SET activa = 0 WHERE id = ?", (oferta_id,))
-    con.commit()
-    if cur.rowcount == 0:
+def cerrar_oferta(con, oferta_id, usuario_id=None):
+    """Marca la oferta como cerrada. Con usuario_id, solo su dueño puede cerrarla."""
+    fila = con.execute("SELECT usuario_id FROM ofertas WHERE id = ?", (oferta_id,)).fetchone()
+    if fila is None:
         raise ValueError(f"No existe la oferta {oferta_id}")
+    if usuario_id is not None and fila["usuario_id"] != usuario_id:
+        raise PermissionError("Solo quien publicó la oferta puede cerrarla")
+    con.execute("UPDATE ofertas SET activa = 0 WHERE id = ?", (oferta_id,))
+    con.commit()

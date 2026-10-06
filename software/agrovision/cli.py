@@ -70,10 +70,13 @@ def cmd_oferta(args, con):
 def cmd_usuario(args, con):
     if args.accion == "crear":
         password = os.environ.get("AGROVISION_PASSWORD") or getpass.getpass("Contraseña (mín. 8): ")
-        uid = auth.crear_usuario(con, args.usuario, password, args.nombre)
+        uid = auth.crear_usuario(con, args.usuario, password, args.nombre, "admin" if args.admin else "productor")
         print(f"Usuario {args.usuario} creado (id {uid}).")
+    elif args.accion == "rol":
+        auth.cambiar_rol(con, args.usuario, args.rol)
+        print(f"Usuario {args.usuario}: rol {args.rol}.")
     else:
-        _imprimir([dict(f) for f in con.execute("SELECT id, usuario, nombre, creado FROM usuarios")])
+        _imprimir([dict(f) for f in con.execute("SELECT id, usuario, nombre, rol, creado FROM usuarios")])
 
 
 def cmd_margen(args, con):
@@ -130,10 +133,12 @@ def construir_parser():
         "publicar": ["productor", "producto", "cantidad", "precio"], "cerrar": ["id"]})
 
     s = sub.add_parser("usuario", help="Crear o listar usuarios del panel web")
-    s.add_argument("accion", choices=["crear", "listar"])
+    s.add_argument("accion", choices=["crear", "listar", "rol"])
     s.add_argument("--usuario")
     s.add_argument("--nombre")
-    s.set_defaults(func=cmd_usuario, requeridos={"crear": ["usuario", "nombre"]})
+    s.add_argument("--admin", action="store_true", help="Crear con rol de administrador")
+    s.add_argument("--rol", choices=["productor", "admin"])
+    s.set_defaults(func=cmd_usuario, requeridos={"crear": ["usuario", "nombre"], "rol": ["usuario", "rol"]})
 
     s = sub.add_parser("margen", help="Rentabilidad de una campaña")
     s.add_argument("--rendimiento", type=float, required=True, help="kg cosechados")
